@@ -24,7 +24,7 @@ func main() {
 		httpPort: env.GetInt("HTTP_PORT", 4000),
 	}
 
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
 	app := &application{
 		config: cfg,
@@ -41,7 +41,7 @@ func main() {
 
 	err := srv.ListenAndServe()
 	if err != nil {
-		logger.Error(err.Error(), "port", cfg.httpPort)
+		logger.Error(err.Error())
 		os.Exit(1)
 	}
 }
