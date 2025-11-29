@@ -51,7 +51,7 @@ func (app *application) authenticate(next http.Handler) http.Handler {
 		if err != nil {
 			switch {
 			case errors.Is(err, data.ErrRecordNotFound):
-				app.invalidCredentials(w, r)
+				app.invalidAuthenticationToken(w, r)
 			default:
 				app.serverError(w, r, err)
 			}
