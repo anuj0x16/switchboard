@@ -1,12 +1,17 @@
 package data
 
 import (
+	"context"
 	"errors"
 	"time"
 
 	"github.com/anuj0x16/switchboard/internal/validator"
+	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
 )
+
+var ErrDuplicateEmail = errors.New("duplicate email")
 
 type User struct {
 	ID        string    `json:"id"`
@@ -67,4 +72,34 @@ func ValidateUser(v *validator.Validator, user *User) {
 	if user.Password.hash == nil {
 		panic("missing password hash for user")
 	}
+}
+
+type UserModel struct {
+	DB *pgxpool.Pool
+}
+
+func (m UserModel) Insert(user *User) error {
+	query := `
+		INSERT INTO users (email, password_hash)
+		VALUES ($1, $2)
+		RETURNING id, created_at`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.QueryRow(ctx, query, user.Email, user.Password.hash).Scan(
+		&user.ID,
+		&user.CreatedAt,
+	)
+	if err != nil {
+		var pgError *pgconn.PgError
+		if errors.As(err, &pgError) {
+			if pgError.Code == "23505" {
+				return ErrDuplicateEmail
+			}
+		}
+		return err
+	}
+
+	return nil
 }

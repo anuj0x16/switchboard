@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/anuj0x16/switchboard/internal/data"
 	"github.com/anuj0x16/switchboard/internal/env"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/joho/godotenv/autoload"
@@ -21,6 +22,7 @@ type config struct {
 type application struct {
 	config config
 	logger *slog.Logger
+	models data.Models
 }
 
 func main() {
@@ -43,6 +45,7 @@ func main() {
 	app := &application{
 		config: cfg,
 		logger: logger,
+		models: data.NewModels(db),
 	}
 
 	srv := &http.Server{
