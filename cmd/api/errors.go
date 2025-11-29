@@ -47,3 +47,8 @@ func (app *application) invalidAuthenticationToken(w http.ResponseWriter, r *htt
 	msg := "invalid authentication token"
 	app.errorResponse(w, r, http.StatusUnauthorized, msg)
 }
+
+func (app *application) authenticationRequired(w http.ResponseWriter, r *http.Request) {
+	msg := "authentication is required to access this resource"
+	app.errorResponse(w, r, http.StatusUnauthorized, msg)
+}
