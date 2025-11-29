@@ -17,6 +17,7 @@ import (
 type config struct {
 	httpPort    int
 	databaseUrl string
+	jwtSecret   string
 }
 
 type application struct {
@@ -29,6 +30,7 @@ func main() {
 	cfg := config{
 		httpPort:    env.GetInt("HTTP_PORT", 4000),
 		databaseUrl: env.GetString("DATABASE_URL", ""),
+		jwtSecret:   env.GetString("JWT_SECRET", ""),
 	}
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
