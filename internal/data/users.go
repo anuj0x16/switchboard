@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/anuj0x16/switchboard/internal/validator"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
@@ -102,4 +103,33 @@ func (m UserModel) Insert(user *User) error {
 	}
 
 	return nil
+}
+
+func (m UserModel) GetByEmail(email string) (*User, error) {
+	query := `
+		SELECT id, email, password_hash, created_at
+		FROM users
+		WHERE email = $1`
+
+	var user User
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.QueryRow(ctx, query, email).Scan(
+		&user.ID,
+		&user.Email,
+		&user.Password.hash,
+		&user.CreatedAt,
+	)
+	if err != nil {
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	return &user, nil
 }
