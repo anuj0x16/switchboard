@@ -21,6 +21,12 @@ type User struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+var AnonymousUser = &User{}
+
+func (u *User) IsAnonymous() bool {
+	return u == AnonymousUser
+}
+
 type password struct {
 	plaintext *string
 	hash      []byte
@@ -127,6 +133,39 @@ func (m UserModel) GetByEmail(email string) (*User, error) {
 		case errors.Is(err, pgx.ErrNoRows):
 			return nil, ErrRecordNotFound
 		default:
+			return nil, err
+		}
+	}
+
+	return &user, nil
+}
+
+func (m UserModel) GetById(id string) (*User, error) {
+	query := `
+		SELECT id, email, password_hash, created_at
+		FROM users
+		WHERE id = $1`
+
+	var user User
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.QueryRow(ctx, query, id).Scan(
+		&user.ID,
+		&user.Email,
+		&user.Password.hash,
+		&user.CreatedAt,
+	)
+	if err != nil {
+		var pgError *pgconn.PgError
+		if errors.As(err, &pgError) {
+			if pgError.Code == "22P02" {
+				return nil, ErrRecordNotFound
+			}
+		} else if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrRecordNotFound
+		} else {
 			return nil, err
 		}
 	}
