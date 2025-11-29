@@ -43,7 +43,7 @@ func (app *application) invalidCredentials(w http.ResponseWriter, r *http.Reques
 }
 
 func (app *application) invalidAuthenticationToken(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("WWWW-Authenticate", "Bearer")
+	w.Header().Set("WWW-Authenticate", "Bearer")
 	msg := "invalid authentication token"
 	app.errorResponse(w, r, http.StatusUnauthorized, msg)
 }
